@@ -59,3 +59,14 @@ Decizie tehnica:
 Ramane pentru Etapa 5:
 - Sablonare vizuala mai fina daca dosarul oficial are un format impus.
 - Export "toti selectatii" intr-o arhiva sau PDF separat per formator, daca va fi nevoie.
+
+## Etapa 6 - imbunatatiri faza 2
+
+Implementat:
+- Export CSV compatibil Excel pentru situatia unei licitatii, disponibil din pagina `/admin/licitatii/[id]`.
+- Ruta admin `/api/export/licitatii/[licitatieId]/situatie` cu raport tabelar: status, selectie, eligibilitate, date formator, contracte, ore, tematici si punctaje pe factori.
+
+Ramane pentru Etapa 6:
+- Extragere asistata din recomandari, cu confirmare umana obligatorie.
+- Roluri fine admin/vizualizator, istoric modificari si notificari.
+- Rapoarte suplimentare sau workbook `.xlsx` cu foi multiple, daca raportul CSV nu mai este suficient.
