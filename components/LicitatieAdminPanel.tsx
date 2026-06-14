@@ -162,6 +162,7 @@ export default function LicitatieAdminPanel({ licitatie, factori, criterii, apli
             const formator = toScoringFormator(row);
             const eligibility = isEligible(formator, criterii, factori);
             const name = [row.formator?.prenume, row.formator?.nume].filter(Boolean).join(" ") || "Formator invitat";
+            const canExport = !!row.formator && row.status === "finalizat";
             return (
               <article key={row.id} style={applicationStyle}>
                 <div style={{ display: "grid", gap: 5 }}>
@@ -175,6 +176,13 @@ export default function LicitatieAdminPanel({ licitatie, factori, criterii, apli
                       />
                       Selectat
                     </label>
+                    {canExport ? (
+                      <a href={`/api/export/${row.id}`} style={exportLinkStyle}>
+                        Export dosar
+                      </a>
+                    ) : (
+                      <span style={disabledExportStyle}>Export dupa finalizare</span>
+                    )}
                     <strong style={{ color: "#16324f" }}>{name}</strong>
                     <span style={statusStyle}>{statusLabel(row.status)}</span>
                     <span style={eligibility.ok ? okBadgeStyle : warnBadgeStyle}>
@@ -331,6 +339,27 @@ const toggleStyle: CSSProperties = {
   fontSize: 13,
   fontWeight: 700,
   color: "#16324f",
+};
+
+const exportLinkStyle: CSSProperties = {
+  border: "1px solid #2f6f6a",
+  borderRadius: 7,
+  padding: "6px 9px",
+  color: "#2f6f6a",
+  fontSize: 12,
+  fontWeight: 700,
+  textDecoration: "none",
+  background: "#fff",
+};
+
+const disabledExportStyle: CSSProperties = {
+  border: "1px solid #dde3ea",
+  borderRadius: 7,
+  padding: "6px 9px",
+  color: "#7a8694",
+  fontSize: 12,
+  fontWeight: 700,
+  background: "#f6f8fb",
 };
 
 const statusStyle: CSSProperties = {
