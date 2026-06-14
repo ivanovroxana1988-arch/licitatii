@@ -43,3 +43,19 @@ Fisiere principale noi:
 Ramane pentru Etapa 4:
 - Editor complet pentru factori si criterii, separat de legarea rapida a formularului.
 - Creare licitatie noua din dashboard.
+
+## Etapa 5 - generare documente si export PDF
+
+Implementat:
+- Ruta admin `/api/export/[aplicareId]` care genereaza un PDF unic pentru dosarul formatorului.
+- Generator server-side in `lib/export-dossier.ts`, cu pagini standardizate pentru coperta, CV, lista organizatiilor si declaratii-tip.
+- Asamblare documente incarcate din Supabase Storage in ordinea: recomandari, contracte, diplome, certificate, alte documente.
+- Include PDF-uri existente prin concatenare si imagini prin conversie server-side in PNG.
+- Buton `Export dosar` pe fiecare aplicare finalizata din pagina `/admin/licitatii/[id]`.
+
+Decizie tehnica:
+- Folosim `pdf-lib` pentru generarea paginilor si concatentarea PDF-urilor, plus `sharp` pentru normalizarea imaginilor incarcate. Evitam browser/headless in serverless Vercel si pastram exportul intr-o ruta Node.js cu `maxDuration = 60`.
+
+Ramane pentru Etapa 5:
+- Sablonare vizuala mai fina daca dosarul oficial are un format impus.
+- Export "toti selectatii" intr-o arhiva sau PDF separat per formator, daca va fi nevoie.
