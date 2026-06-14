@@ -143,7 +143,14 @@ function sanitizeContracte(value: unknown): AplicareContract[] {
       nr_tematici: countTopics(text(item.tematici)),
       ordine: index,
     }))
-    .filter((contract) => contract.organizatie.trim() || contract.tematici?.trim());
+    .filter(
+      (contract) =>
+        contract.organizatie.trim() ||
+        contract.domeniu_org?.trim() ||
+        contract.perioada?.trim() ||
+        contract.tematici?.trim() ||
+        Number(contract.ore) > 0
+    );
 }
 
 function text(value: unknown): string {
