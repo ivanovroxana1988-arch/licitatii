@@ -125,9 +125,14 @@ export default async function LicitatiePage({ params }: PageProps) {
               {licitatieResult.data?.referinta} {licitatieResult.data?.beneficiar ? `- ${licitatieResult.data.beneficiar}` : ""}
             </p>
           </div>
-          <Link href={`/admin/licitatii/${params.id}/formular`} style={buttonLinkStyle}>
-            Configureaza formular
-          </Link>
+          <div style={actionsStyle}>
+            <a href={`/api/export/licitatii/${params.id}/situatie`} style={secondaryButtonLinkStyle}>
+              Export situatie CSV
+            </a>
+            <Link href={`/admin/licitatii/${params.id}/formular`} style={buttonLinkStyle}>
+              Configureaza formular
+            </Link>
+          </div>
         </div>
 
         {(error || contracteResult.error) && (
@@ -171,7 +176,6 @@ const backLinkStyle = {
 };
 
 const buttonLinkStyle = {
-  alignSelf: "start",
   border: "1px solid #2f6f6a",
   borderRadius: 8,
   padding: "9px 12px",
@@ -180,6 +184,20 @@ const buttonLinkStyle = {
   fontWeight: 700,
   fontSize: 13,
   textDecoration: "none",
+};
+
+const secondaryButtonLinkStyle = {
+  ...buttonLinkStyle,
+  background: "#2f6f6a",
+  color: "#fff",
+};
+
+const actionsStyle = {
+  alignSelf: "start" as const,
+  display: "flex" as const,
+  gap: 8,
+  flexWrap: "wrap" as const,
+  justifyContent: "flex-end" as const,
 };
 
 const errorStyle = {
