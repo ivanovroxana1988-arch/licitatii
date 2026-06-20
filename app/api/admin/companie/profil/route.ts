@@ -15,6 +15,12 @@ const FIELDS = [
   "banca",
   "reprezentant_nume",
   "reprezentant_functie",
+  "reprezentant_ci_serie",
+  "reprezentant_ci_numar",
+  "reprezentant_ci_eliberat_de",
+  "reprezentant_ci_data",
+  "reprezentant_ci_valabil_pana",
+  "reprezentant_validare_detalii",
   "email",
   "telefon",
   "website",
@@ -54,6 +60,7 @@ export async function PUT(request: Request) {
   for (const field of FIELDS) {
     payload[field] = asNullableString(body[field]);
   }
+  payload.reprezentant_validat_constatator = Boolean(body.reprezentant_validat_constatator);
   payload.declaratii_json = asObject(body.declaratii_json);
   payload.documente_json = asObject(body.documente_json);
 
