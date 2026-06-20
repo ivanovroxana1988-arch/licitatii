@@ -24,8 +24,9 @@ export default function TenderImportForm() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+      const data = await readApiResponse(res);
       if (!res.ok) throw new Error(data.error ?? "Nu am putut crea proiectul de licitatie.");
+      if (!data.redirectTo) throw new Error("Raspunsul serverului nu contine pagina de redirect.");
       router.push(data.redirectTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nu am putut crea proiectul de licitatie.");
@@ -73,6 +74,23 @@ export default function TenderImportForm() {
       </button>
     </form>
   );
+}
+
+async function readApiResponse(res: Response): Promise<{ error?: string; redirectTo?: string }> {
+  const contentType = res.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return (await res.json()) as { error?: string; redirectTo?: string };
+  }
+
+  const text = await res.text();
+  const compact = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+  return {
+    error:
+      compact ||
+      `Serverul a raspuns cu status ${res.status}, dar nu a trimis JSON. Superb, exact ce lipsea din meniu.`,
+  };
 }
 
 const panelStyle: CSSProperties = {
