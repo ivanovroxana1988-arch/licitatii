@@ -24,11 +24,32 @@ export type CompanyProfile = {
   documente_json?: Record<string, unknown> | null;
 };
 
+export type CompanyDocument = {
+  id?: string;
+  tip: string;
+  titlu: string;
+  nume_fisier: string;
+  storage_bucket?: string | null;
+  storage_path?: string | null;
+  text_extras?: string | null;
+  metadate_json?: Record<string, unknown> | null;
+};
+
 export type CompanyAutofillResult = {
   values: Record<string, unknown>;
   missing: string[];
   suggestions: string[];
 };
+
+export const COMPANY_DOCUMENT_TYPES = [
+  { value: "certificat_constatator", label: "Certificat constatator ONRC" },
+  { value: "certificat_fiscal", label: "Certificat fiscal" },
+  { value: "certificat_beneficiar_real", label: "Dovada beneficiar real" },
+  { value: "imputernicire", label: "Imputernicire semnatar" },
+  { value: "contract_similar", label: "Contract similar" },
+  { value: "recomandare", label: "Recomandare" },
+  { value: "altul", label: "Alt document" },
+] as const;
 
 const PROFILE_KEY_MAP: Record<string, keyof CompanyProfile> = {
   denumire: "denumire",
@@ -75,10 +96,12 @@ const DECLARATION_DEFAULTS: Record<string, boolean> = {
 
 export function buildCompanyAutofill(params: {
   profile: CompanyProfile | null | undefined;
+  documents?: CompanyDocument[];
   formularConfig?: FormularConfig | null;
   workspace?: TenderWorkspace | null;
 }): CompanyAutofillResult {
   const profile = params.profile ?? {};
+  const documents = params.documents ?? [];
   const values: Record<string, unknown> = {};
   const missing = new Set<string>();
   const suggestions = new Set<string>();
@@ -104,6 +127,10 @@ export function buildCompanyAutofill(params: {
     }
   }
 
+  for (const document of documents) {
+    values[`document_${document.tip}`] = document.nume_fisier;
+  }
+
   if (params.workspace) {
     const docs = params.workspace.dossier.administrativeDocuments;
     for (const doc of docs) {
@@ -113,6 +140,17 @@ export function buildCompanyAutofill(params: {
       }
       if (lower.includes("beneficiar real")) {
         values.declaratie_beneficiar_real = true;
+        if (!hasCompanyDocument(documents, "certificat_constatator")) missing.add("Incarca certificatul constatator ONRC in profilul companiei.");
+      }
+      if (lower.includes("fiscal")) {
+        if (!hasCompanyDocument(documents, "certificat_fiscal")) missing.add("Incarca certificatul fiscal in profilul companiei.");
+      }
+      if (lower.includes("beneficiar real")) {
+        values.declaratie_beneficiar_real = true;
+        if (!hasCompanyDocument(documents, "certificat_beneficiar_real")) missing.add("Incarca dovada/declaratia de beneficiar real in profilul companiei.");
+      }
+      if (lower.includes("imputernicire") || lower.includes("imputernicirea")) {
+        if (!hasCompanyDocument(documents, "imputernicire")) missing.add("Incarca imputernicirea semnatarului in profilul companiei.");
       }
       if (lower.includes("164") || lower.includes("165") || lower.includes("167")) {
         values.declaratie_neincadrare_164 = true;
@@ -128,6 +166,8 @@ export function buildCompanyAutofill(params: {
 
   if (!hasValue(profile.experienta_similara)) {
     suggestions.add("Completeaza experienta similara si contractele relevante pentru formularele de capacitate tehnica.");
+  if (!hasValue(profile.experienta_similara) && !documents.some((doc) => doc.tip === "contract_similar" || doc.tip === "recomandare")) {
+    suggestions.add("Completeaza experienta similara si incarca macar contractele/recomandarile relevante pentru formularele de capacitate tehnica.");
   }
 
   return {
@@ -135,6 +175,41 @@ export function buildCompanyAutofill(params: {
     missing: Array.from(missing),
     suggestions: Array.from(suggestions),
   };
+}
+
+export function inferCompanyProfilePatchFromDocument(params: {
+  tip: string;
+  text: string;
+  currentProfile: CompanyProfile;
+}): Partial<CompanyProfile> {
+  const normalized = params.text.replace(/\s+/g, " ").trim();
+  const patch: Partial<CompanyProfile> = {};
+
+  if (params.tip === "certificat_constatator") {
+    patch.denumire = patchIfEmpty(params.currentProfile.denumire, findCompanyName(normalized));
+    patch.cui = patchIfEmpty(params.currentProfile.cui, findFirst(normalized, [/(?:cui|cod unic de inregistrare|cod fiscal)[:\s]+([0-9]{5,12})/i]));
+    patch.nr_reg_com = patchIfEmpty(params.currentProfile.nr_reg_com, findFirst(normalized, [/(?:j\d{2}\/\d+\/\d{4}|f\d{2}\/\d+\/\d{4}|c\d{2}\/\d+\/\d{4})/i]));
+    patch.sediu = patchIfEmpty(params.currentProfile.sediu, findAddress(normalized));
+    patch.caen_principal = patchIfEmpty(params.currentProfile.caen_principal, findFirst(normalized, [/(?:caen|cod caen)[:\s-]*(\d{4})/i]));
+  }
+
+  if (params.tip === "certificat_fiscal") {
+    patch.cui = patchIfEmpty(params.currentProfile.cui, findFirst(normalized, [/(?:cui|cod fiscal)[:\s]+([0-9]{5,12})/i]));
+  }
+
+  if (params.tip === "certificat_beneficiar_real") {
+    patch.declaratii_json = {
+      ...(params.currentProfile.declaratii_json ?? {}),
+      declaratie_beneficiar_real: true,
+    };
+  }
+
+  if (params.tip === "contract_similar" || params.tip === "recomandare") {
+    const summary = normalized.slice(0, 900);
+    patch.experienta_similara = patchIfEmpty(params.currentProfile.experienta_similara, summary);
+  }
+
+  return removeEmptyPatch(patch);
 }
 
 export function companyProfileToFlatValues(profile: CompanyProfile): Record<string, unknown> {
@@ -178,6 +253,17 @@ export function requiredCompanyProfileFields(profile: CompanyProfile): string[] 
   return checks.filter(([key]) => !hasValue(profile[key])).map(([, message]) => message);
 }
 
+export function matchCompanyDocumentToDossierItem(title: string, documents: CompanyDocument[]): CompanyDocument | null {
+  const lower = normalize(title);
+  if (lower.includes("onrc") || lower.includes("constatator")) return findDoc(documents, "certificat_constatator");
+  if (lower.includes("fiscal")) return findDoc(documents, "certificat_fiscal");
+  if (lower.includes("beneficiar_real")) return findDoc(documents, "certificat_beneficiar_real");
+  if (lower.includes("imputernicire") || lower.includes("imputernicirea")) return findDoc(documents, "imputernicire");
+  if (lower.includes("contract") || lower.includes("experienta_similara")) return findDoc(documents, "contract_similar");
+  if (lower.includes("recomandare")) return findDoc(documents, "recomandare");
+  return null;
+}
+
 function matchFieldToProfileKey(id: string, label: string): keyof CompanyProfile | null {
   const normalizedId = normalize(id);
   const normalizedLabel = normalize(label);
@@ -187,6 +273,14 @@ function matchFieldToProfileKey(id: string, label: string): keyof CompanyProfile
   }
 
   return null;
+}
+
+function hasCompanyDocument(documents: CompanyDocument[], tip: string): boolean {
+  return documents.some((doc) => doc.tip === tip);
+}
+
+function findDoc(documents: CompanyDocument[], tip: string): CompanyDocument | null {
+  return documents.find((doc) => doc.tip === tip) ?? null;
 }
 
 function hasValue(value: unknown): boolean {
@@ -202,4 +296,34 @@ function normalize(value: string): string {
     .replace(/[țţ]/g, "t")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+}
+
+function findFirst(text: string, patterns: RegExp[]): string | null {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) return match[1].trim();
+    if (match?.[0]) return match[0].trim();
+  }
+  return null;
+}
+
+function findCompanyName(text: string): string | null {
+  const quoted = text.match(/(?:denumire|firma|societatea)[:\s]+([A-Z0-9 .,&'-]+(?:SRL|S\.R\.L\.|SA|S\.A\.))/i);
+  if (quoted?.[1]) return quoted[1].trim();
+  const generic = text.match(/([A-Z0-9 .,&'-]+(?:SRL|S\.R\.L\.|SA|S\.A\.))/);
+  return generic?.[1]?.trim() ?? null;
+}
+
+function findAddress(text: string): string | null {
+  const match = text.match(/(?:sediu social|sediul social|adresa sediului social|sediu)[:\s]+(.{20,240}?)(?:cui|cod unic|nr\.? reg|registrul|caen|administrator|$)/i);
+  return match?.[1]?.trim().replace(/[;,.\s]+$/, "") ?? null;
+}
+
+function patchIfEmpty(current: string | null | undefined, next: string | null): string | undefined {
+  if (hasValue(current) || !next?.trim()) return undefined;
+  return next.trim();
+}
+
+function removeEmptyPatch(patch: Partial<CompanyProfile>): Partial<CompanyProfile> {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined && value !== null && value !== "")) as Partial<CompanyProfile>;
 }

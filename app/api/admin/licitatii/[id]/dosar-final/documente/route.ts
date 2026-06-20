@@ -169,6 +169,7 @@ type UploadLike = {
 };
 
 function isUploadLike(value: unknown): value is UploadLike {
+function isUploadLike(value: FormDataEntryValue | null): boolean {
   return !!(
     value &&
     typeof value === "object" &&
