@@ -13,10 +13,11 @@ export default function ImportaLicitatiePage() {
         <LogoutButton />
       </header>
       <main style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 44px" }}>
-        <Link href="/admin/dashboard" style={backLinkStyle}>Inapoi la dashboard</Link>
-        <div style={{ marginTop: 14 }}>
-          <TenderImportForm />
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+          <Link href="/admin/dashboard" style={backLinkStyle}>Inapoi la dashboard</Link>
+          <Link href="/admin/licitatii/importa/ocr" style={backLinkStyle}>OCR pentru PDF scanat</Link>
         </div>
+        <TenderImportForm />
       </main>
     </div>
   );
