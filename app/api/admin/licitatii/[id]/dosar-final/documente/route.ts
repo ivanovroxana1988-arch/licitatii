@@ -60,7 +60,7 @@ export async function POST(request: Request, { params }: Ctx) {
   try {
     const formData = await request.formData();
     const fileValue = formData.get("file");
-    const file = isUploadLike(fileValue) ? fileValue : null;
+    const file = isUploadLike(fileValue) ? (fileValue as unknown as UploadLike) : null;
     const documentKey = cleanKey(String(formData.get("documentKey") ?? ""));
     const title = String(formData.get("title") ?? "").trim();
     const category = String(formData.get("category") ?? "dosar-final").trim();

@@ -39,9 +39,10 @@ export default async function Dashboard() {
             <h1 style={{ fontSize: 18, color: "#16324f" }}>Licitatii</h1>
             <p style={muted}>Configureaza formularul, genereaza linkuri de invitatie si urmareste completarea dosarelor.</p>
           </div>
-          <Link href="/admin/licitatii/importa" style={primaryLink}>
-            Importa specificatii
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Link href="/admin/companie" style={secondaryLink}>Profil companie</Link>
+            <Link href="/admin/licitatii/importa" style={primaryLink}>Importa specificatii</Link>
+          </div>
         </div>
 
         {(error || aplicariError) && <div style={{ color: "#b3261e", marginBottom: 14 }}>Eroare: {error?.message ?? aplicariError?.message}</div>}
@@ -114,3 +115,4 @@ const muted = { fontSize: 13, color: "#5a6573", marginTop: 4 };
 const badge = { justifySelf: "end", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20, background: "#e6f4ec", color: "#2e7d52" };
 const row = { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "9px 10px", border: "1px solid #eef2f6", borderRadius: 7, marginTop: 8 };
 const primaryLink = { alignSelf: "start", border: "none", borderRadius: 8, padding: "10px 13px", background: "#16324f", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 700 };
+const secondaryLink = { ...primaryLink, border: "1px solid #2f6f6a", background: "#fff", color: "#2f6f6a" };

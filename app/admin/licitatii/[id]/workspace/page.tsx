@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import ExpertRecruitmentWorkspace from "@/components/ExpertRecruitmentWorkspace";
+import CompanyAutofillPanel from "@/components/CompanyAutofillPanel";
 import FinalDossierUploads from "@/components/FinalDossierUploads";
 import { createClient } from "@/lib/supabase-server";
 import type { TenderWorkspace } from "@/lib/tender-workspace";
@@ -37,6 +38,7 @@ export default async function TenderWorkspacePage({ params }: { params: { id: st
           </div>
           <div style={actionsStyle}>
             <Link href={`/admin/licitatii/${params.id}/formular`} style={buttonLinkStyle}>Configureaza formular</Link>
+            <Link href="/admin/companie" style={buttonLinkStyle}>Profil companie</Link>
             <Link href={`/admin/licitatii/${params.id}`} style={primaryButtonLinkStyle}>Recrutare experti</Link>
           </div>
         </div>
@@ -57,6 +59,8 @@ export default async function TenderWorkspacePage({ params }: { params: { id: st
               <SummaryCard label="Buget estimat" value={formatMoney(workspace.identity.estimatedBudgetNoVat)} helper="fara TVA" />
               <SummaryCard label="Termen" value={workspace.identity.submissionDeadline} helper="depunere oferta" />
             </section>
+
+            <CompanyAutofillPanel licitatieId={params.id} />
 
             <section style={panelStyle}>
               <div style={kickerStyle}>BRIEF LICITATIE</div>
