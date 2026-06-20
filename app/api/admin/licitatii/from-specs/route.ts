@@ -150,7 +150,7 @@ async function extractTextFromUpload(file: UploadLike): Promise<string> {
   throw new Error("Pentru acest MVP accept PDF, TXT sau text lipit in formular. DOCX intra in episodul urmator al serialului birocratic.");
 }
 
-function isUploadLike(value: FormDataEntryValue | null): value is UploadLike {
+function isUploadLike(value: unknown): value is UploadLike {
   return !!(
     value &&
     typeof value === "object" &&
