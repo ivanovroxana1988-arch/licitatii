@@ -85,6 +85,16 @@ begin
   end if;
 end $$;
 
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 drop trigger if exists set_licitatie_dosar_documente_updated_at on public.licitatie_dosar_documente;
 create trigger set_licitatie_dosar_documente_updated_at
 before update on public.licitatie_dosar_documente
