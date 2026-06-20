@@ -168,7 +168,7 @@ type UploadLike = {
   arrayBuffer: () => Promise<ArrayBuffer>;
 };
 
-function isUploadLike(value: FormDataEntryValue | null): value is UploadLike {
+function isUploadLike(value: unknown): value is UploadLike {
   return !!(
     value &&
     typeof value === "object" &&
