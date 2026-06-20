@@ -13,6 +13,13 @@ export type CompanyProfile = {
   banca?: string | null;
   reprezentant_nume?: string | null;
   reprezentant_functie?: string | null;
+  reprezentant_ci_serie?: string | null;
+  reprezentant_ci_numar?: string | null;
+  reprezentant_ci_eliberat_de?: string | null;
+  reprezentant_ci_data?: string | null;
+  reprezentant_ci_valabil_pana?: string | null;
+  reprezentant_validat_constatator?: boolean | null;
+  reprezentant_validare_detalii?: string | null;
   email?: string | null;
   telefon?: string | null;
   website?: string | null;
@@ -74,6 +81,12 @@ const PROFILE_KEY_MAP: Record<string, keyof CompanyProfile> = {
   reprezentant_nume: "reprezentant_nume",
   functie_reprezentant: "reprezentant_functie",
   reprezentant_functie: "reprezentant_functie",
+  serie_ci: "reprezentant_ci_serie",
+  seria_ci: "reprezentant_ci_serie",
+  numar_ci: "reprezentant_ci_numar",
+  ci_numar: "reprezentant_ci_numar",
+  ci_eliberat: "reprezentant_ci_eliberat_de",
+  ci_valabil: "reprezentant_ci_valabil_pana",
   email: "email",
   telefon: "telefon",
   website: "website",
@@ -106,11 +119,8 @@ export function buildCompanyAutofill(params: {
   const missing = new Set<string>();
   const suggestions = new Set<string>();
 
-  const profileMissing = requiredCompanyProfileFields(profile);
-  profileMissing.forEach((item) => missing.add(item));
-
-  const baseValues = companyProfileToFlatValues(profile);
-  Object.assign(values, baseValues);
+  requiredCompanyProfileFields(profile).forEach((item) => missing.add(item));
+  Object.assign(values, companyProfileToFlatValues(profile));
 
   for (const [key, fallback] of Object.entries(DECLARATION_DEFAULTS)) {
     const explicit = profile.declaratii_json?.[key];
@@ -131,9 +141,12 @@ export function buildCompanyAutofill(params: {
     values[`document_${document.tip}`] = document.nume_fisier;
   }
 
+  if (!profile.reprezentant_validat_constatator) {
+    missing.add("Reprezentantul legal nu este validat in certificatul constatator.");
+  }
+
   if (params.workspace) {
-    const docs = params.workspace.dossier.administrativeDocuments;
-    for (const doc of docs) {
+    for (const doc of params.workspace.dossier.administrativeDocuments) {
       const lower = normalize(doc);
       if (lower.includes("onrc") || lower.includes("constatator")) {
         if (!hasCompanyDocument(documents, "certificat_constatator")) missing.add("Incarca certificatul constatator ONRC in profilul companiei.");
@@ -141,7 +154,7 @@ export function buildCompanyAutofill(params: {
       if (lower.includes("fiscal")) {
         if (!hasCompanyDocument(documents, "certificat_fiscal")) missing.add("Incarca certificatul fiscal in profilul companiei.");
       }
-      if (lower.includes("beneficiar real")) {
+      if (lower.includes("beneficiar_real")) {
         values.declaratie_beneficiar_real = true;
         if (!hasCompanyDocument(documents, "certificat_beneficiar_real")) missing.add("Incarca dovada/declaratia de beneficiar real in profilul companiei.");
       }
@@ -180,11 +193,22 @@ export function inferCompanyProfilePatchFromDocument(params: {
   const patch: Partial<CompanyProfile> = {};
 
   if (params.tip === "certificat_constatator") {
+    const onrcRepresentativeName = findLegalRepresentativeName(normalized);
+    const onrcRepresentativeRole = findLegalRepresentativeRole(normalized);
+    const currentOrDetectedRepresentative = params.currentProfile.reprezentant_nume || onrcRepresentativeName;
+    const representativeValidated = currentOrDetectedRepresentative ? textContainsPersonName(normalized, currentOrDetectedRepresentative) : false;
+
     patch.denumire = patchIfEmpty(params.currentProfile.denumire, findCompanyName(normalized));
     patch.cui = patchIfEmpty(params.currentProfile.cui, findFirst(normalized, [/(?:cui|cod unic de inregistrare|cod fiscal)[:\s]+([0-9]{5,12})/i]));
     patch.nr_reg_com = patchIfEmpty(params.currentProfile.nr_reg_com, findFirst(normalized, [/(?:j\d{2}\/\d+\/\d{4}|f\d{2}\/\d+\/\d{4}|c\d{2}\/\d+\/\d{4})/i]));
     patch.sediu = patchIfEmpty(params.currentProfile.sediu, findAddress(normalized));
     patch.caen_principal = patchIfEmpty(params.currentProfile.caen_principal, findFirst(normalized, [/(?:caen|cod caen)[:\s-]*(\d{4})/i]));
+    patch.reprezentant_nume = patchIfEmpty(params.currentProfile.reprezentant_nume, onrcRepresentativeName);
+    patch.reprezentant_functie = patchIfEmpty(params.currentProfile.reprezentant_functie, onrcRepresentativeRole ?? "Administrator");
+    patch.reprezentant_validat_constatator = representativeValidated;
+    patch.reprezentant_validare_detalii = representativeValidated
+      ? `Validat in certificatul constatator: ${currentOrDetectedRepresentative}.`
+      : "Reprezentantul legal completat nu a fost identificat clar in certificatul constatator.";
   }
 
   if (params.tip === "certificat_fiscal") {
@@ -222,6 +246,13 @@ export function companyProfileToFlatValues(profile: CompanyProfile): Record<stri
     reprezentant_nume: profile.reprezentant_nume ?? "",
     reprezentant_legal: profile.reprezentant_nume ?? "",
     reprezentant_functie: profile.reprezentant_functie ?? "",
+    reprezentant_ci_serie: profile.reprezentant_ci_serie ?? "",
+    reprezentant_ci_numar: profile.reprezentant_ci_numar ?? "",
+    reprezentant_ci_eliberat_de: profile.reprezentant_ci_eliberat_de ?? "",
+    reprezentant_ci_data: profile.reprezentant_ci_data ?? "",
+    reprezentant_ci_valabil_pana: profile.reprezentant_ci_valabil_pana ?? "",
+    reprezentant_validat_constatator: profile.reprezentant_validat_constatator ?? false,
+    reprezentant_validare_detalii: profile.reprezentant_validare_detalii ?? "",
     email: profile.email ?? "",
     telefon: profile.telefon ?? "",
     website: profile.website ?? "",
@@ -240,6 +271,9 @@ export function requiredCompanyProfileFields(profile: CompanyProfile): string[] 
     ["sediu", "Lipseste sediul social."],
     ["reprezentant_nume", "Lipseste reprezentantul legal."],
     ["reprezentant_functie", "Lipseste functia reprezentantului legal."],
+    ["reprezentant_ci_serie", "Lipseste seria CI a reprezentantului legal."],
+    ["reprezentant_ci_numar", "Lipseste numarul CI al reprezentantului legal."],
+    ["reprezentant_ci_eliberat_de", "Lipseste emitentul CI al reprezentantului legal."],
     ["email", "Lipseste emailul oficial."],
     ["telefon", "Lipseste telefonul oficial."],
   ];
@@ -311,6 +345,38 @@ function findCompanyName(text: string): string | null {
 function findAddress(text: string): string | null {
   const match = text.match(/(?:sediu social|sediul social|adresa sediului social|sediu)[:\s]+(.{20,240}?)(?:cui|cod unic|nr\.? reg|registrul|caen|administrator|$)/i);
   return match?.[1]?.trim().replace(/[;,.\s]+$/, "") ?? null;
+}
+
+function findLegalRepresentativeName(text: string): string | null {
+  const direct = text.match(/(?:administrator|administrator unic|reprezentant legal|persoana imputernicita)[:\s-]+([A-ZĂÂÎȘŞȚŢ][A-ZĂÂÎȘŞȚŢa-zăâîșşțţ .'-]{5,90})/i);
+  if (direct?.[1]) return cleanPersonName(direct[1]);
+
+  const namedAfterRole = text.match(/([A-ZĂÂÎȘŞȚŢ][A-ZĂÂÎȘŞȚŢa-zăâîșşțţ .'-]{5,90})\s+(?:administrator|administrator unic|asociat administrator)/i);
+  if (namedAfterRole?.[1]) return cleanPersonName(namedAfterRole[1]);
+
+  return null;
+}
+
+function findLegalRepresentativeRole(text: string): string | null {
+  const match = text.match(/(administrator unic|administrator|reprezentant legal|asociat administrator|imputernicit)/i);
+  if (!match?.[1]) return null;
+  const role = match[1].trim().toLowerCase();
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+function textContainsPersonName(text: string, name: string): boolean {
+  const normalizedText = normalize(text);
+  const normalizedName = normalize(name);
+  const parts = normalizedName.split("_").filter((part) => part.length > 2);
+  if (parts.length < 2) return normalizedText.includes(normalizedName);
+  return parts.every((part) => normalizedText.includes(part));
+}
+
+function cleanPersonName(value: string): string {
+  return value
+    .replace(/\b(cnp|cetatenie|domiciliu|nascut|administrator|asociat|date personale)\b.*$/i, "")
+    .replace(/[,;:.]+$/g, "")
+    .trim();
 }
 
 function patchIfEmpty(current: string | null | undefined, next: string | null): string | undefined {
