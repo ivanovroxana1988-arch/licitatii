@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import ExpertRecruitmentWorkspace from "@/components/ExpertRecruitmentWorkspace";
 import FinalDossierUploads from "@/components/FinalDossierUploads";
 import { createClient } from "@/lib/supabase-server";
 import type { TenderWorkspace } from "@/lib/tender-workspace";
@@ -85,20 +86,7 @@ export default async function TenderWorkspacePage({ params }: { params: { id: st
               </div>
             </section>
 
-            <section style={panelStyle}>
-              <div style={kickerStyle}>RECRUTARE EXPERTI</div>
-              <div style={cardGridStyle}>
-                {workspace.experts.map((expert) => (
-                  <article key={expert.id} style={miniCardStyle}>
-                    <h3 style={miniTitleStyle}>{expert.title}</h3>
-                    <strong style={smallTitleStyle}>Minim obligatoriu</strong>
-                    <List items={expert.minimumRequirements} />
-                    <strong style={smallTitleStyle}>Pentru punctaj maxim</strong>
-                    <List items={expert.winningRequirements} />
-                  </article>
-                ))}
-              </div>
-            </section>
+            <ExpertRecruitmentWorkspace licitatieId={params.id} roles={workspace.experts} />
 
             <section style={panelStyle}>
               <div style={kickerStyle}>METODOLOGIE SI RISCURI</div>
@@ -125,21 +113,9 @@ export default async function TenderWorkspacePage({ params }: { params: { id: st
             <FinalDossierUploads
               licitatieId={params.id}
               groups={[
-                {
-                  category: "administrative",
-                  title: "Documente administrative",
-                  items: workspace.dossier.administrativeDocuments,
-                },
-                {
-                  category: "experti",
-                  title: "Documente experti",
-                  items: workspace.dossier.expertDocuments,
-                },
-                {
-                  category: "verificari-finale",
-                  title: "Verificari finale / versiuni semnate",
-                  items: workspace.dossier.finalChecks,
-                },
+                { category: "administrative", title: "Documente administrative", items: workspace.dossier.administrativeDocuments },
+                { category: "experti", title: "Documente experti", items: workspace.dossier.expertDocuments },
+                { category: "verificari-finale", title: "Verificari finale / versiuni semnate", items: workspace.dossier.finalChecks },
               ]}
             />
 
