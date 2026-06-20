@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 
+type AttachedDocument = { title: string; fileName: string };
+
 type AutofillResult = {
   values?: Record<string, unknown>;
   missing?: string[];
   suggestions?: string[];
+  attachedDocuments?: AttachedDocument[];
   error?: string;
 };
 
@@ -39,13 +42,13 @@ export default function CompanyAutofillPanel({ licitatieId }: { licitatieId: str
           <div style={kickerStyle}>PROFIL COMPANIE → AUTOFILL</div>
           <h2 style={titleStyle}>Completare automata formulare</h2>
           <p style={mutedStyle}>
-            Foloseste profilul companiei ca sursa unica pentru date de identificare, declaratii si campuri administrative. Pentru ca a scrie CUI-ul de 47 de ori nu este strategie, este pedeapsa medievala cu Wi-Fi.
+            Foloseste profilul companiei si PDF-urile incarcate ca sursa unica pentru date de identificare, declaratii si documente administrative. Daca gaseste documente potrivite, le copiaza si in Dosar final. Uite asa, copy-paste-ul birocratic isi pierde monopolul, tragedie pentru traditionaliști.
           </p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "start", flexWrap: "wrap" }}>
           <Link href="/admin/companie" style={secondaryButtonStyle}>Editeaza profil</Link>
           <button type="button" onClick={generateAutofill} disabled={busy} style={buttonStyle}>
-            {busy ? "Generez..." : "Genereaza autofill"}
+            {busy ? "Generez..." : "Genereaza autofill + atasare PDF"}
           </button>
         </div>
       </div>
@@ -55,6 +58,12 @@ export default function CompanyAutofillPanel({ licitatieId }: { licitatieId: str
       {result && !result.error && (
         <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
           <div style={scoreStyle}>{count} campuri completate</div>
+          {(result.attachedDocuments?.length ?? 0) > 0 && (
+            <div style={okBoxStyle}>
+              <strong>PDF-uri atasate automat in dosarul final</strong>
+              <ul style={listStyle}>{result.attachedDocuments?.map((item) => <li key={`${item.title}-${item.fileName}`}>{item.title}: {item.fileName}</li>)}</ul>
+            </div>
+          )}
           {(result.missing?.length ?? 0) > 0 && (
             <div style={warnBoxStyle}>
               <strong>Lipsuri de completat</strong>
@@ -98,6 +107,7 @@ const secondaryButtonStyle: CSSProperties = { ...buttonStyle, border: "1px solid
 const errorStyle: CSSProperties = { border: "1px solid #f1b5ae", background: "#fff7f6", color: "#b3261e", borderRadius: 8, padding: 11, fontSize: 13, marginTop: 12 };
 const warnBoxStyle: CSSProperties = { border: "1px solid #f0c36d", background: "#fffaf0", borderRadius: 8, padding: 11, color: "#394554", fontSize: 13 };
 const infoBoxStyle: CSSProperties = { border: "1px solid #dde3ea", background: "#f6f8fb", borderRadius: 8, padding: 11, color: "#394554", fontSize: 13 };
+const okBoxStyle: CSSProperties = { border: "1px solid #b7dfc8", background: "#f2fbf6", borderRadius: 8, padding: 11, color: "#2e7d52", fontSize: 13 };
 const scoreStyle: CSSProperties = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, fontWeight: 700, color: "#16324f" };
 const listStyle: CSSProperties = { margin: "8px 0 0", paddingLeft: 18, display: "grid", gap: 4 };
 const detailsStyle: CSSProperties = { border: "1px solid #eef2f6", borderRadius: 8, padding: 11 };
