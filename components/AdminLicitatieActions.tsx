@@ -30,6 +30,9 @@ export default function AdminLicitatieActions({ licitatieId }: { licitatieId: st
         <Link href={`/admin/licitatii/${licitatieId}`} style={linkButtonStyle}>
           Deschide licitatia
         </Link>
+        <Link href={`/admin/licitatii/${licitatieId}/workspace`} style={linkButtonStyle}>
+          Tender workspace
+        </Link>
         <Link href={`/admin/licitatii/${licitatieId}/formular`} style={linkButtonStyle}>
           Configureaza formular
         </Link>
