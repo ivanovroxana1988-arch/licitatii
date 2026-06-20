@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import FinalDossierUploads from "@/components/FinalDossierUploads";
 import { createClient } from "@/lib/supabase-server";
 import type { TenderWorkspace } from "@/lib/tender-workspace";
 
@@ -121,14 +122,26 @@ export default async function TenderWorkspacePage({ params }: { params: { id: st
               </div>
             </section>
 
-            <section style={panelStyle}>
-              <div style={kickerStyle}>DOSAR FINAL</div>
-              <div style={cardGridStyle}>
-                <Checklist title="Documente administrative" items={workspace.dossier.administrativeDocuments} />
-                <Checklist title="Documente experti" items={workspace.dossier.expertDocuments} />
-                <Checklist title="Verificari finale" items={workspace.dossier.finalChecks} />
-              </div>
-            </section>
+            <FinalDossierUploads
+              licitatieId={params.id}
+              groups={[
+                {
+                  category: "administrative",
+                  title: "Documente administrative",
+                  items: workspace.dossier.administrativeDocuments,
+                },
+                {
+                  category: "experti",
+                  title: "Documente experti",
+                  items: workspace.dossier.expertDocuments,
+                },
+                {
+                  category: "verificari-finale",
+                  title: "Verificari finale / versiuni semnate",
+                  items: workspace.dossier.finalChecks,
+                },
+              ]}
+            />
 
             {workspace.warnings.length > 0 && (
               <section style={warningPanelStyle}>
@@ -161,10 +174,6 @@ function List({ items, ordered = false }: { items: string[]; ordered?: boolean }
   return <Tag style={listStyle}>{items.map((item) => <li key={item}>{item}</li>)}</Tag>;
 }
 
-function Checklist({ title, items }: { title: string; items: string[] }) {
-  return <article style={miniCardStyle}><h3 style={miniTitleStyle}>{title}</h3>{items.map((item) => <label key={item} style={checkStyle}><input type="checkbox" readOnly /> {item}</label>)}</article>;
-}
-
 function formatMoney(value: number | null) {
   if (!value) return "-";
   return new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0 }).format(value) + " lei";
@@ -187,7 +196,6 @@ const listStyle = { display: "grid", gap: 5, paddingLeft: 18, color: "#394554", 
 const tableStyle = { display: "grid", gap: 7, marginTop: 12 };
 const infoRowStyle = { display: "grid", gridTemplateColumns: "160px 1fr", gap: 10, fontSize: 13, borderBottom: "1px solid #eef2f6", paddingBottom: 7 };
 const riskStyle = { display: "grid", gap: 4, border: "1px solid #eef2f6", borderRadius: 8, padding: 11, fontSize: 13, color: "#394554" };
-const checkStyle = { display: "flex", gap: 8, alignItems: "start", color: "#394554", fontSize: 13, lineHeight: 1.4 };
 const proposalStyle = { whiteSpace: "pre-wrap" as const, background: "#f6f8fb", border: "1px solid #dde3ea", borderRadius: 8, padding: 14, marginTop: 12, fontSize: 13, lineHeight: 1.55, color: "#11161d" };
 const backLinkStyle = { color: "#2f6f6a", fontSize: 13, fontWeight: 700, textDecoration: "none" };
 const actionsStyle = { alignSelf: "start" as const, display: "flex" as const, gap: 8, flexWrap: "wrap" as const, justifyContent: "flex-end" as const };
