@@ -1,23 +1,23 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
-import TenderImportForm from "@/components/TenderImportForm";
+import TenderOcrImportForm from "@/components/TenderOcrImportForm";
 
-export default function ImportaLicitatiePage() {
+export default function OcrImportPage() {
   return (
     <div style={{ minHeight: "100vh" }}>
       <header style={headerStyle}>
         <div>
           <div style={kickerStyle}>MOTOR DE LICITATII</div>
-          <div style={{ fontSize: 17, fontWeight: 700, marginTop: 2 }}>Import specificatii</div>
+          <div style={{ fontSize: 17, fontWeight: 700, marginTop: 2 }}>OCR specificatii</div>
         </div>
         <LogoutButton />
       </header>
       <main style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 44px" }}>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           <Link href="/admin/dashboard" style={backLinkStyle}>Inapoi la dashboard</Link>
-          <Link href="/admin/licitatii/importa/ocr" style={backLinkStyle}>OCR pentru PDF scanat</Link>
+          <Link href="/admin/licitatii/importa" style={backLinkStyle}>Import normal PDF/text</Link>
         </div>
-        <TenderImportForm />
+        <TenderOcrImportForm />
       </main>
     </div>
   );
