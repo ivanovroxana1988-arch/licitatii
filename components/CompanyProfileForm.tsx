@@ -14,6 +14,11 @@ const FIELDS: Array<{ key: keyof CompanyProfile; label: string; type?: "textarea
   { key: "banca", label: "Banca" },
   { key: "reprezentant_nume", label: "Reprezentant legal" },
   { key: "reprezentant_functie", label: "Functie reprezentant" },
+  { key: "reprezentant_ci_serie", label: "Serie CI reprezentant legal" },
+  { key: "reprezentant_ci_numar", label: "Numar CI reprezentant legal" },
+  { key: "reprezentant_ci_eliberat_de", label: "CI eliberat de" },
+  { key: "reprezentant_ci_data", label: "Data eliberarii CI" },
+  { key: "reprezentant_ci_valabil_pana", label: "CI valabil pana la" },
   { key: "email", label: "Email oficial" },
   { key: "telefon", label: "Telefon oficial" },
   { key: "website", label: "Website" },
@@ -59,6 +64,8 @@ export default function CompanyProfileForm() {
     setError(null);
     try {
       await Promise.all([loadProfile(), loadDocuments()]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nu am putut incarca profilul companiei.");
     } finally {
       setLoading(false);
     }
@@ -168,7 +175,7 @@ export default function CompanyProfileForm() {
       <div style={kickerStyle}>PROFIL COMPANIE</div>
       <h1 style={titleStyle}>Date standard pentru completare automata</h1>
       <p style={mutedStyle}>
-        Completeaza o singura data datele firmei si incarca PDF-urile standard. Aplicatia extrage text din documente, completeaza profilul unde poate si apoi le poate atasa automat in dosarul final al unei licitatii. Birocratia, redusa la o rutina. Incredibil ce face civilizatia cand isi propune lucruri mici.
+        Completeaza o singura data datele firmei, reprezentantul legal si datele CI. Certificatul constatator este folosit pentru validarea numelui/functiei reprezentantului, nu pentru seria CI, pentru ca ONRC nu este album foto cu buletine. CI se completeaza separat si se foloseste in declaratii/imputerniciri.
       </p>
 
       {error && <div style={errorStyle}>{error}</div>}
@@ -201,6 +208,11 @@ export default function CompanyProfileForm() {
           ))}
           {!documents.length && <div style={emptyStyle}>Nu exista documente PDF incarcate in profil.</div>}
         </div>
+      </section>
+
+      <section style={profile.reprezentant_validat_constatator ? okBoxStyle : warnBoxStyle}>
+        <strong>{profile.reprezentant_validat_constatator ? "Reprezentant validat in certificatul constatator" : "Reprezentant nevalidat in certificatul constatator"}</strong>
+        <span>{profile.reprezentant_validare_detalii || "Incarca certificatul constatator ONRC dupa ce completezi reprezentantul legal, ca sa putem valida numele/functia."}</span>
       </section>
 
       <div style={gridStyle}>
@@ -293,4 +305,6 @@ const mutedStyle: CSSProperties = { fontSize: 13, color: "#5a6573", lineHeight: 
 const labelStyle: CSSProperties = { fontSize: 12, fontWeight: 700, color: "#16324f" };
 const errorStyle: CSSProperties = { border: "1px solid #f1b5ae", background: "#fff7f6", color: "#b3261e", borderRadius: 8, padding: 11, fontSize: 13 };
 const okStyle: CSSProperties = { border: "1px solid #b7dfc8", background: "#f2fbf6", color: "#2e7d52", borderRadius: 8, padding: 11, fontSize: 13 };
+const okBoxStyle: CSSProperties = { ...okStyle, display: "grid", gap: 5 };
+const warnBoxStyle: CSSProperties = { border: "1px solid #f0c36d", background: "#fffaf0", color: "#8a5a00", borderRadius: 8, padding: 11, fontSize: 13, display: "grid", gap: 5 };
 const emptyStyle: CSSProperties = { border: "1px dashed #dde3ea", borderRadius: 8, padding: 12, color: "#5a6573", fontSize: 13 };
