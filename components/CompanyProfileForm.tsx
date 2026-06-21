@@ -23,8 +23,12 @@ const fields: Array<{ key: keyof CompanyProfile; label: string; textarea?: boole
   { key: "email", label: "Email oficial" },
   { key: "telefon", label: "Telefon oficial" },
   { key: "website", label: "Website" },
-  { key: "caen_principal", label: "CAEN principal" },
+  { key: "caen_principal", label: "CAEN principal", textarea: true },
   { key: "caen_secundare", label: "CAEN secundare", textarea: true },
+  { key: "caen_autorizate_la_sediu", label: "CAEN autorizate la sediu", textarea: true },
+  { key: "caen_autorizate_la_terti", label: "CAEN autorizate la terti / in afara sediului", textarea: true },
+  { key: "caen_relevante_licitatie", label: "CAEN relevante pentru licitatii", textarea: true },
+  { key: "caen_sursa_validare", label: "Sursa validare CAEN" },
   { key: "descriere", label: "Descriere companie", textarea: true },
   { key: "experienta_similara", label: "Experienta similara standard", textarea: true },
 ];
@@ -147,7 +151,7 @@ export default function CompanyProfileForm() {
         </div>
         <div style={documentGridStyle}>{docs.map((doc) => <article key={doc.id} style={documentCardStyle}><strong style={labelStyle}>{labelForDocumentType(doc.tip)}</strong><span style={mutedStyle}>{doc.nume_fisier}</span><span style={mutedStyle}>{doc.text_extras ? `${doc.text_extras.length} caractere extrase` : "Text nedetectat"}</span><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{doc.signed_url && <a href={doc.signed_url} target="_blank" rel="noreferrer" style={linkButtonStyle}>Deschide</a>}<button type="button" onClick={() => deleteDocument(doc.id!)} style={dangerButtonStyle}>Sterge</button></div></article>)}{!docs.length && <div style={emptyStyle}>Nu exista documente PDF incarcate in profil.</div>}</div>
       </section>
-      <div style={gridStyle}>{fields.map((field) => <label key={field.key} style={fieldStyle}><span style={labelStyle}>{field.label}</span>{field.textarea ? <textarea value={String(profile[field.key] ?? "")} onChange={(event) => setProfile((current) => ({ ...current, [field.key]: event.currentTarget.value }))} rows={field.key === "experienta_similara" ? 6 : 3} style={textareaStyle} /> : <input value={String(profile[field.key] ?? "")} onChange={(event) => setProfile((current) => ({ ...current, [field.key]: event.currentTarget.value }))} style={inputStyle} />}</label>)}</div>
+      <div style={gridStyle}>{fields.map((field) => <label key={field.key} style={fieldStyle}><span style={labelStyle}>{field.label}</span>{field.textarea ? <textarea value={String(profile[field.key] ?? "")} onChange={(event) => setProfile((current) => ({ ...current, [field.key]: event.currentTarget.value }))} rows={field.key === "experienta_similara" || String(field.key).startsWith("caen_") ? 6 : 3} style={textareaStyle} /> : <input value={String(profile[field.key] ?? "")} onChange={(event) => setProfile((current) => ({ ...current, [field.key]: event.currentTarget.value }))} style={inputStyle} />}</label>)}</div>
       <section style={subPanelStyle}><h2 style={sectionTitleStyle}>Declaratii standard</h2><div style={checkGridStyle}>{declarations.map(([key, label]) => <label key={key} style={checkStyle}><input type="checkbox" checked={Boolean(profile.declaratii_json?.[key])} onChange={(event) => setProfile((current) => ({ ...current, declaratii_json: { ...(current.declaratii_json ?? {}), [key]: event.currentTarget.checked } }))} />{label}</label>)}</div></section>
       <button type="submit" disabled={busy} style={buttonStyle}>{busy ? "Salvez..." : "Salveaza profilul companiei"}</button>
     </form>
