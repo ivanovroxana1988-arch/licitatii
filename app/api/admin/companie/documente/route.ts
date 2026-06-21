@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     const file = isUploadLike(fileValue) ? fileValue : null;
     const tip = cleanType(String(formData.get("tip") ?? "altul"));
     const titlu = String(formData.get("titlu") ?? labelForType(tip)).trim() || labelForType(tip);
+    const browserOcrText = String(formData.get("extractedText") ?? "").replace(/\n{3,}/g, "\n\n").trim();
 
     if (!file || Number(file.size ?? 0) <= 0) {
       return NextResponse.json({ error: "Alege un PDF pentru documentul companiei." }, { status: 400 });
@@ -92,7 +93,9 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const text = await tryExtractPdfText(buffer);
+    const serverText = await tryExtractPdfText(buffer);
+    const text = browserOcrText.length > serverText.length ? browserOcrText : serverText;
+    const extractionSource = browserOcrText.length > serverText.length ? "browser-ocr" : "pdf-parse";
     const safeFileName = cleanFileName(fileName);
     const storagePath = `${profileId}/${tip}/${Date.now()}-${safeFileName}`;
 
@@ -115,7 +118,12 @@ export async function POST(request: Request) {
       mime_type: "application/pdf",
       marime_bytes: Number(file.size ?? buffer.byteLength),
       text_extras: text,
-      metadate_json: { extractedProfilePatch: metadata },
+      metadate_json: {
+        extractedProfilePatch: metadata,
+        extractionSource,
+        serverTextChars: serverText.length,
+        browserOcrChars: browserOcrText.length,
+      },
     });
 
     if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
@@ -139,7 +147,7 @@ export async function POST(request: Request) {
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-    return NextResponse.json({ ok: true, extractedChars: text.length, profil: updatedProfile, extractedProfilePatch: metadata });
+    return NextResponse.json({ ok: true, extractedChars: text.length, extractionSource, profil: updatedProfile, extractedProfilePatch: metadata });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Nu am putut incarca documentul companiei." },
