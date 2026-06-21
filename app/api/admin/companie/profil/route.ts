@@ -20,6 +20,10 @@ const FIELDS = [
   "website",
   "caen_principal",
   "caen_secundare",
+  "caen_autorizate_la_sediu",
+  "caen_autorizate_la_terti",
+  "caen_relevante_licitatie",
+  "caen_sursa_validare",
   "descriere",
   "experienta_similara",
 ] as const;
