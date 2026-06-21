@@ -2,7 +2,7 @@ import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import SimilarExperienceManager from "@/components/SimilarExperienceManager";
 
-export default function SimilarExperiencePage() {
+export default function SimilarExperiencePage({ searchParams }: { searchParams?: { licitatieId?: string } }) {
   return (
     <div style={{ minHeight: "100vh" }}>
       <header style={headerStyle}>
@@ -14,7 +14,7 @@ export default function SimilarExperiencePage() {
       </header>
       <main style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 44px" }}>
         <Link href="/admin/dashboard" style={backLinkStyle}>Inapoi la dashboard</Link>
-        <div style={{ marginTop: 14 }}><SimilarExperienceManager /></div>
+        <div style={{ marginTop: 14 }}><SimilarExperienceManager licitatieId={searchParams?.licitatieId} /></div>
       </main>
     </div>
   );
