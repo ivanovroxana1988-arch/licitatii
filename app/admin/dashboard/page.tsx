@@ -41,6 +41,7 @@ export default async function Dashboard() {
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <Link href="/admin/companie" style={secondaryLink}>Profil companie</Link>
+            <Link href="/admin/experienta-similara" style={secondaryLink}>Experienta similara</Link>
             <Link href="/admin/licitatii/importa" style={primaryLink}>Importa specificatii</Link>
           </div>
         </div>
