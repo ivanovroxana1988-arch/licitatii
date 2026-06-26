@@ -38,6 +38,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   return NextResponse.json({ company: data });
 }
 
+export async function DELETE(_request: Request, { params }: RouteParams) {
+  const { response } = await requireAdmin();
+  if (response) return response;
+
+  const service = createServiceClient();
+  const { error } = await service.from("companies").delete().eq("id", params.id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ removed: true });
+}
+
 function normalizeCompanyPayload(body: Record<string, unknown>) {
   return {
     name: asNullableString(body.name),
