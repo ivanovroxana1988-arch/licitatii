@@ -232,6 +232,7 @@ export default function AssociationsManager() {
                 <div style={tagRowStyle}>{(association.members ?? []).map((member) => <span key={member.company_id} style={tagStyle}>{member.company?.name ?? member.company_id}</span>)}</div>
               </div>
               <div style={cardActionsStyle}>
+                <a href={`/admin/asocieri/${association.id}/overview`} style={miniLinkStyle}>Overview</a>
                 <button type="button" onClick={() => startEdit(association)} style={miniButtonStyle}>Editeaza</button>
                 <button type="button" onClick={() => void removeAssociation(association)} style={dangerButtonStyle}>Sterge</button>
               </div>
@@ -337,6 +338,7 @@ const textareaStyle: CSSProperties = { ...inputStyle, minHeight: 88, resize: "ve
 const buttonStyle: CSSProperties = { border: "none", borderRadius: 8, padding: "10px 13px", background: "#16324f", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 12 };
 const secondaryButtonStyle: CSSProperties = { ...buttonStyle, border: "1px solid #2f6f6a", background: "#fff", color: "#2f6f6a", marginTop: 0 };
 const miniButtonStyle: CSSProperties = { ...secondaryButtonStyle, padding: "7px 9px", fontSize: 12 };
+const miniLinkStyle: CSSProperties = { ...miniButtonStyle, textDecoration: "none" };
 const dangerButtonStyle: CSSProperties = { ...miniButtonStyle, borderColor: "#b3261e", color: "#b3261e", marginTop: 10 };
 const emptyStyle: CSSProperties = { border: "1px dashed #cfd7df", borderRadius: 8, padding: 12, color: "#5a6573", fontSize: 13, marginTop: 14 };
 const errorStyle: CSSProperties = { border: "1px solid #f3b1aa", background: "#fff4f2", color: "#b3261e", borderRadius: 8, padding: 10, marginTop: 12, fontSize: 13 };
