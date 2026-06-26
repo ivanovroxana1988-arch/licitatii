@@ -40,7 +40,9 @@ export default async function Dashboard() {
             <p style={muted}>Configureaza formularul, genereaza linkuri de invitatie si urmareste completarea dosarelor.</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Link href="/admin/companie" style={secondaryLink}>Profil companie</Link>
+            <Link href="/admin/companii" style={secondaryLink}>Companii</Link>
+            <Link href="/admin/asocieri" style={secondaryLink}>Asocieri</Link>
+            <Link href="/admin/companie" style={secondaryLink}>Profil companie vechi</Link>
             <Link href="/admin/experienta-similara" style={secondaryLink}>Experienta similara</Link>
             <Link href="/admin/licitatii/importa" style={primaryLink}>Importa specificatii</Link>
           </div>
