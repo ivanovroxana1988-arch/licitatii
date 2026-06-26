@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 type MatchBody = { tenderId?: string; candidateKind?: CandidateKind; candidateId?: string };
 type Company = { id: string; name: string; cui?: string | null; caen_codes?: string[] | null; cpv_codes?: string[] | null };
 type Member = { company_id: string; responsibility?: string | null; share_percent?: number | null; is_leader?: boolean; company?: Company | null };
+type MemberRow = Omit<Member, "company"> & { company?: Company | Company[] | null };
 type Experience = { title?: string | null; domain?: string | null; cpv_code?: string | null; value?: number | null };
 type CandidateLoadResult =
   | { ok: true; status: 200; value: MatchInput["candidate"] }
@@ -108,7 +109,7 @@ async function loadAssociationCandidate(service: ReturnType<typeof createService
   if (error) return { ok: false, error: error.message, status: 500 };
   if (!association) return { ok: false, error: "Asocierea nu a fost gasita.", status: 404 };
 
-  const members = ((association.members ?? []) as Member[]).filter((member) => member.company_id);
+  const members = ((association.members ?? []) as unknown as MemberRow[]).map(normalizeMember).filter((member) => member.company_id);
   const companyIds = members.map((member) => member.company_id);
   const { data: experiences, error: expError } = companyIds.length
     ? await service.from("company_experience_contracts").select("title,domain,cpv_code,value").in("company_id", companyIds)
@@ -132,6 +133,11 @@ async function loadAssociationCandidate(service: ReturnType<typeof createService
       missingResponsibilities: members.filter((member) => !member.responsibility).length,
     },
   };
+}
+
+function normalizeMember(member: MemberRow): Member {
+  const company = Array.isArray(member.company) ? member.company[0] ?? null : member.company ?? null;
+  return { ...member, company };
 }
 
 function unique(values: string[]) {
