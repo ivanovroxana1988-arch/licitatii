@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-api";
 import { createServiceClient } from "@/lib/supabase-server";
-import { buildTenderMatch, type CandidateKind } from "@/lib/matching/tender-match";
+import { buildTenderMatch, type CandidateKind, type MatchInput } from "@/lib/matching/tender-match";
 
 export const runtime = "nodejs";
 
@@ -9,6 +9,9 @@ type MatchBody = { tenderId?: string; candidateKind?: CandidateKind; candidateId
 type Company = { id: string; name: string; cui?: string | null; caen_codes?: string[] | null; cpv_codes?: string[] | null };
 type Member = { company_id: string; responsibility?: string | null; share_percent?: number | null; is_leader?: boolean; company?: Company | null };
 type Experience = { title?: string | null; domain?: string | null; cpv_code?: string | null; value?: number | null };
+type CandidateLoadResult =
+  | { ok: true; status: 200; value: MatchInput["candidate"] }
+  | { ok: false; status: number; error: string };
 
 const ASSOCIATION_SELECT = "id,name,leader_company_id,purpose,notes,members:association_members(company_id,role,responsibility,share_percent,is_leader,company:companies(id,name,cui,caen_codes,cpv_codes))";
 
@@ -56,7 +59,7 @@ export async function POST(request: Request) {
     ? await loadAssociationCandidate(service, body.candidateId)
     : await loadCompanyCandidate(service, body.candidateId);
 
-  if (candidate.error) return NextResponse.json({ error: candidate.error }, { status: candidate.status });
+  if (!candidate.ok) return NextResponse.json({ error: candidate.error }, { status: candidate.status });
 
   const result = buildTenderMatch({ tender, candidate: candidate.value });
 
@@ -78,18 +81,19 @@ export async function POST(request: Request) {
   return NextResponse.json({ match: saved, result });
 }
 
-async function loadCompanyCandidate(service: ReturnType<typeof createServiceClient>, companyId: string) {
+async function loadCompanyCandidate(service: ReturnType<typeof createServiceClient>, companyId: string): Promise<CandidateLoadResult> {
   const { data: company, error } = await service.from("companies").select("id,name,cui,caen_codes,cpv_codes").eq("id", companyId).maybeSingle();
-  if (error) return { error: error.message, status: 500, value: null as never };
-  if (!company) return { error: "Compania nu a fost gasita.", status: 404, value: null as never };
+  if (error) return { ok: false, error: error.message, status: 500 };
+  if (!company) return { ok: false, error: "Compania nu a fost gasita.", status: 404 };
 
   const { data: experiences, error: expError } = await service.from("company_experience_contracts").select("title,domain,cpv_code,value").eq("company_id", companyId);
-  if (expError) return { error: expError.message, status: 500, value: null as never };
+  if (expError) return { ok: false, error: expError.message, status: 500 };
 
   return {
+    ok: true,
     status: 200,
     value: {
-      kind: "company" as CandidateKind,
+      kind: "company",
       id: company.id,
       name: company.name,
       caenCodes: company.caen_codes ?? [],
@@ -99,10 +103,10 @@ async function loadCompanyCandidate(service: ReturnType<typeof createServiceClie
   };
 }
 
-async function loadAssociationCandidate(service: ReturnType<typeof createServiceClient>, associationId: string) {
+async function loadAssociationCandidate(service: ReturnType<typeof createServiceClient>, associationId: string): Promise<CandidateLoadResult> {
   const { data: association, error } = await service.from("associations").select(ASSOCIATION_SELECT).eq("id", associationId).maybeSingle();
-  if (error) return { error: error.message, status: 500, value: null as never };
-  if (!association) return { error: "Asocierea nu a fost gasita.", status: 404, value: null as never };
+  if (error) return { ok: false, error: error.message, status: 500 };
+  if (!association) return { ok: false, error: "Asocierea nu a fost gasita.", status: 404 };
 
   const members = ((association.members ?? []) as Member[]).filter((member) => member.company_id);
   const companyIds = members.map((member) => member.company_id);
@@ -110,12 +114,13 @@ async function loadAssociationCandidate(service: ReturnType<typeof createService
     ? await service.from("company_experience_contracts").select("title,domain,cpv_code,value").in("company_id", companyIds)
     : { data: [] as Experience[], error: null };
 
-  if (expError) return { error: expError.message, status: 500, value: null as never };
+  if (expError) return { ok: false, error: expError.message, status: 500 };
 
   return {
+    ok: true,
     status: 200,
     value: {
-      kind: "association" as CandidateKind,
+      kind: "association",
       id: association.id,
       name: association.name,
       caenCodes: unique(members.flatMap((member) => member.company?.caen_codes ?? [])),
