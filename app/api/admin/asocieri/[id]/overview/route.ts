@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 type RouteParams = { params: { id: string } };
 type Company = { id: string; name: string; cui?: string | null; caen_codes?: string[] | null; cpv_codes?: string[] | null };
 type Member = { company_id: string; role?: string | null; responsibility?: string | null; share_percent?: number | null; is_leader?: boolean; company?: Company | null };
+type MemberRow = Omit<Member, "company"> & { company?: Company | Company[] | null };
 type Experience = { company_id: string; value?: number | null; currency?: string | null; title?: string | null; cpv_code?: string | null; domain?: string | null };
 
 const SELECT_FULL = "id,name,leader_company_id,purpose,notes,leader:companies!associations_leader_company_id_fkey(id,name,cui,caen_codes,cpv_codes),members:association_members(company_id,role,responsibility,share_percent,is_leader,company:companies(id,name,cui,caen_codes,cpv_codes))";
@@ -25,7 +26,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!association) return NextResponse.json({ error: "Asocierea nu a fost gasita." }, { status: 404 });
 
-  const members = ((association.members ?? []) as Member[]).filter((member) => member.company_id);
+  const members = ((association.members ?? []) as unknown as MemberRow[]).map(normalizeMember).filter((member) => member.company_id);
   const companyIds = members.map((member) => member.company_id);
 
   let experiences: Experience[] = [];
@@ -41,6 +42,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const overview = buildOverview(association, members, experiences);
   return NextResponse.json({ overview });
+}
+
+function normalizeMember(member: MemberRow): Member {
+  const company = Array.isArray(member.company) ? member.company[0] ?? null : member.company ?? null;
+  return { ...member, company };
 }
 
 function buildOverview(association: Record<string, unknown>, members: Member[], experiences: Experience[]) {
