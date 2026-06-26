@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 type RouteParams = { params: { id: string } };
 type Company = { id: string; name: string; cui?: string | null; caen_codes?: string[] | null; cpv_codes?: string[] | null };
 type Member = { company_id: string; role?: string | null; responsibility?: string | null; share_percent?: number | null; is_leader?: boolean; company?: Company | null };
+type MemberRow = Omit<Member, "company"> & { company?: Company | Company[] | null };
 type Experience = { company_id: string; value?: number | null; currency?: string | null; title?: string | null; cpv_code?: string | null; domain?: string | null };
 
 const SELECT_FULL = "id,name,leader_company_id,purpose,notes,leader:companies!associations_leader_company_id_fkey(id,name,cui,caen_codes,cpv_codes),members:association_members(company_id,role,responsibility,share_percent,is_leader,company:companies(id,name,cui,caen_codes,cpv_codes))";
@@ -16,7 +17,7 @@ export default async function AssociationOverviewPage({ params }: RouteParams) {
   if (error) return <Shell title="Eroare"><Panel><p style={errorStyle}>{error.message}</p></Panel></Shell>;
   if (!association) return <Shell title="Asociere negasita"><Panel><p style={errorStyle}>Asocierea nu a fost gasita.</p></Panel></Shell>;
 
-  const members = ((association.members ?? []) as Member[]).filter((member) => member.company_id);
+  const members = ((association.members ?? []) as unknown as MemberRow[]).map(normalizeMember).filter((member) => member.company_id);
   const companyIds = members.map((member) => member.company_id);
   const { data: experiences } = companyIds.length
     ? await service.from("company_experience_contracts").select("company_id,title,value,currency,cpv_code,domain").in("company_id", companyIds)
@@ -131,6 +132,11 @@ function TagBlock({ title, values }: { title: string; values: string[] }) {
       <div style={tagRowStyle}>{values.length ? values.map((value) => <span key={value} style={tagStyle}>{value}</span>) : <span style={mutedStyle}>nimic salvat</span>}</div>
     </div>
   );
+}
+
+function normalizeMember(member: MemberRow): Member {
+  const company = Array.isArray(member.company) ? member.company[0] ?? null : member.company ?? null;
+  return { ...member, company };
 }
 
 function buildOverview(association: Record<string, unknown>, members: Member[], experiences: Experience[]) {
