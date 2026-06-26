@@ -20,6 +20,8 @@ Criteriu de acceptare:
 
 ## Faza 1: Companii si asocieri
 
+Status: CRUD companii pornit in `/admin/companii`.
+
 Scop:
 
 Aplicatia trebuie sa stie cine este "noi" inainte sa caute licitatii pentru "noi".
@@ -35,15 +37,15 @@ Functionalitati:
 
 Pagini recomandate:
 
-- `/admin/companies`
-- `/admin/companies/[id]`
+- `/admin/companii`
+- `/admin/companii/[id]`
 - `/admin/associations`
 - `/admin/associations/[id]`
 
 API recomandat:
 
-- `GET/POST /api/admin/companies`
-- `GET/PATCH/DELETE /api/admin/companies/[id]`
+- `GET/POST /api/admin/companii`
+- `GET/PATCH/DELETE /api/admin/companii/[id]`
 - `GET/POST /api/admin/associations`
 - `GET/PATCH/DELETE /api/admin/associations/[id]`
 
