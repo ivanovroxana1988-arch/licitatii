@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import { createServiceClient } from "@/lib/supabase-server";
@@ -92,7 +93,7 @@ export default async function AssociationOverviewPage({ params }: RouteParams) {
   );
 }
 
-function Shell({ title, children }: { title: string; children: React.ReactNode }) {
+function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div style={{ minHeight: "100vh" }}>
       <header style={headerStyle}>
@@ -107,7 +108,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function Panel({ children }: { children: React.ReactNode }) {
+function Panel({ children }: { children: ReactNode }) {
   return <section style={panelStyle}>{children}</section>;
 }
 
@@ -203,24 +204,24 @@ function groupExperiencesByCompany(experiences: Experience[]) {
   return map;
 }
 
-const headerStyle = { background: "#16324f", color: "#fff", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" };
-const kickerLightStyle = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, opacity: 0.7, letterSpacing: ".08em" };
-const backLinkStyle = { color: "#2f6f6a", fontSize: 13, fontWeight: 700, textDecoration: "none" };
-const secondaryLinkStyle = { ...backLinkStyle, color: "#5a6573" };
-const panelStyle = { background: "#fff", border: "1px solid #dde3ea", borderRadius: 8, padding: 16 };
-const kickerStyle = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#2f6f6a", fontWeight: 700, letterSpacing: ".08em" };
-const titleStyle = { fontSize: 20, color: "#16324f", margin: "6px 0 4px" };
-const sectionTitleStyle = { fontSize: 16, color: "#16324f", margin: "0 0 10px" };
-const mutedStyle = { fontSize: 13, color: "#5a6573", marginTop: 4 };
-const statsGridStyle = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10, marginTop: 14 };
-const statStyle = { border: "1px solid #eef2f6", borderRadius: 8, padding: 10 };
-const twoColStyle = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 };
-const okItemStyle = { border: "1px solid #b7dfc8", background: "#f1fbf5", color: "#2e7d52", borderRadius: 8, padding: 10, fontSize: 13 };
-const riskItemStyle = { border: "1px solid #f3d19c", background: "#fff8ec", color: "#8a5a00", borderRadius: 8, padding: 10, fontSize: 13 };
-const emptyStyle = { border: "1px dashed #cfd7df", borderRadius: 8, padding: 12, color: "#5a6573", fontSize: 13 };
-const memberCardStyle = { border: "1px solid #dde3ea", borderRadius: 8, padding: 12 };
-const badgeStyle = { fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: "#e6f4ec", color: "#2e7d52", alignSelf: "start" };
-const labelStyle = { fontSize: 12, fontWeight: 700, color: "#16324f" };
-const tagRowStyle = { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 };
-const tagStyle = { borderRadius: 999, background: "#eef6f5", color: "#2f6f6a", padding: "3px 8px", fontSize: 11, fontWeight: 700 };
-const errorStyle = { border: "1px solid #f3b1aa", background: "#fff4f2", color: "#b3261e", borderRadius: 8, padding: 10, fontSize: 13 };
+const headerStyle: CSSProperties = { background: "#16324f", color: "#fff", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" };
+const kickerLightStyle: CSSProperties = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, opacity: 0.7, letterSpacing: ".08em" };
+const backLinkStyle: CSSProperties = { color: "#2f6f6a", fontSize: 13, fontWeight: 700, textDecoration: "none" };
+const secondaryLinkStyle: CSSProperties = { ...backLinkStyle, color: "#5a6573" };
+const panelStyle: CSSProperties = { background: "#fff", border: "1px solid #dde3ea", borderRadius: 8, padding: 16 };
+const kickerStyle: CSSProperties = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#2f6f6a", fontWeight: 700, letterSpacing: ".08em" };
+const titleStyle: CSSProperties = { fontSize: 20, color: "#16324f", margin: "6px 0 4px" };
+const sectionTitleStyle: CSSProperties = { fontSize: 16, color: "#16324f", margin: "0 0 10px" };
+const mutedStyle: CSSProperties = { fontSize: 13, color: "#5a6573", marginTop: 4 };
+const statsGridStyle: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10, marginTop: 14 };
+const statStyle: CSSProperties = { border: "1px solid #eef2f6", borderRadius: 8, padding: 10 };
+const twoColStyle: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 };
+const okItemStyle: CSSProperties = { border: "1px solid #b7dfc8", background: "#f1fbf5", color: "#2e7d52", borderRadius: 8, padding: 10, fontSize: 13 };
+const riskItemStyle: CSSProperties = { border: "1px solid #f3d19c", background: "#fff8ec", color: "#8a5a00", borderRadius: 8, padding: 10, fontSize: 13 };
+const emptyStyle: CSSProperties = { border: "1px dashed #cfd7df", borderRadius: 8, padding: 12, color: "#5a6573", fontSize: 13 };
+const memberCardStyle: CSSProperties = { border: "1px solid #dde3ea", borderRadius: 8, padding: 12 };
+const badgeStyle: CSSProperties = { fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: "#e6f4ec", color: "#2e7d52", alignSelf: "start" };
+const labelStyle: CSSProperties = { fontSize: 12, fontWeight: 700, color: "#16324f" };
+const tagRowStyle: CSSProperties = { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 };
+const tagStyle: CSSProperties = { borderRadius: 999, background: "#eef6f5", color: "#2f6f6a", padding: "3px 8px", fontSize: 11, fontWeight: 700 };
+const errorStyle: CSSProperties = { border: "1px solid #f3b1aa", background: "#fff4f2", color: "#b3261e", borderRadius: 8, padding: 10, fontSize: 13 };
